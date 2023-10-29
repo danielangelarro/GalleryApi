@@ -18,7 +18,7 @@ public class DeletePhotoCommandsHandler : IRequestHandler<DeletePhotoCommands, E
 
     public async Task<ErrorOr<GalleryResult>> Handle(DeletePhotoCommands command, CancellationToken cancellationToken)
     {
-        if (_photoRepository.GetPhotoById(command.FileId) is not Photo photo)
+        if (await _photoRepository.GetPhotoById(command.FileId) is not Photo photo)
         {
             return Errors.File.FileNotFound;
         }

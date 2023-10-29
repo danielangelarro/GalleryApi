@@ -17,7 +17,7 @@ public class GetByUserPhotoQueryHandler : IRequestHandler<GetByUserPhotoQuery, E
 
     public async Task<ErrorOr<GalleryResultList>> Handle(GetByUserPhotoQuery query, CancellationToken cancellationToken)
     {
-        List<Photo>? photos = _photoRepository.GetPhotosByUser(query.UserId);
+        List<Photo>? photos = await _photoRepository.GetPhotosByUser(query.UserId);
 
         return new GalleryResultList(photos);
     }

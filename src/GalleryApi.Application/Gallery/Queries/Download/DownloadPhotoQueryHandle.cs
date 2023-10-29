@@ -18,7 +18,7 @@ public class DownloadPhotoQueryHandler : IRequestHandler<DownloadPhotoQuery, Err
 
     public async Task<ErrorOr<GalleryResult>> Handle(DownloadPhotoQuery query, CancellationToken cancellationToken)
     {
-        if (_photoRepository.GetPhotoById(query.FileId) is not Photo photo)
+        if (await _photoRepository.GetPhotoById(query.FileId) is not Photo photo)
         {
             return Errors.File.FileNotFound;
         }

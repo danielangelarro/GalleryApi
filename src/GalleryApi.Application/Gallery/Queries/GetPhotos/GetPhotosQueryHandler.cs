@@ -16,6 +16,6 @@ public class GetPhotosQueryHandler : IRequestHandler<GetPhotosQuery, ErrorOr<Gal
 
     public async Task<ErrorOr<GalleryResultList>> Handle(GetPhotosQuery query, CancellationToken cancellationToken)
     {
-        return new GalleryResultList(_photoRepository.GetPhotos());
+        return new GalleryResultList(await _photoRepository.GetPhotos());
     }
 }

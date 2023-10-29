@@ -22,7 +22,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<A
 
     public async Task<ErrorOr<AuthenticationResult>> Handle(RegisterCommand command, CancellationToken cancellationToken)
     {
-        if (_userRepository.GetUserByEmail(command.Email) is not null)
+        if (await _userRepository.GetUserByEmail(command.Email) is not null)
         {
             return Errors.User.DuplicateEmail;
         }
