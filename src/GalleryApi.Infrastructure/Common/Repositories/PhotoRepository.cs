@@ -1,45 +1,48 @@
 using GalleryApi.Application.Common.Interfaces;
 using GalleryApi.Application.Entities;
+using Microsoft.EntityFrameworkCore;
 
-namespace GalleryPhoto.Infrastructure.Repositories;
+namespace GalleryApi.Infrastructure.Repositories;
 
 public class PhotoRepository : IPhotoRepository
 {
-    private static readonly List<Photo> _photos = new();
+    private readonly GalleryPhotoDBContext _context;
 
-    public void Add(Photo photo)
+    public PhotoRepository(GalleryPhotoDBContext context)
     {
-        _photos.Add(photo);
+        _context = context;
     }
 
-    public void Delete(Photo photo)
+    public async void Add(Photo photo)
     {
-        _photos.Remove(photo);
+        _context.Photos.Add(photo);
+        await _context.SaveChangesAsync();
     }
 
-    public void Put(Photo photo)
+    public async void Delete(Photo photo)
     {
-        int index = _photos.IndexOf(photo);
-
-        if (index != -1)
-        {
-            _photos[index].FileName = photo.FileName;
-            _photos[index].FileDescription = photo.FileDescription;
-        }
+        _context.Photos.Remove(photo);
+        await _context.SaveChangesAsync();
     }
 
-    public Photo? GetPhotoById(Guid id)
+    public async void Put(Photo photo)
     {
-        return _photos.SingleOrDefault(photo => photo.Id == id);
+        _context.Entry(photo).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
     }
 
-    public List<Photo> GetPhotos()
+    public async Task<Photo?> GetPhotoById(Guid id)
     {
-        return _photos;
+        return await _context.Photos.SingleOrDefaultAsync(photo => photo.Id == id);
     }
 
-    public List<Photo> GetPhotosByUser(Guid userId)
+    public async Task<List<Photo>> GetPhotos()
     {
-        return _photos.Where(user => user.Id == userId).ToList();
+        return await _context.Photos.ToListAsync();
+    }
+
+    public async Task<List<Photo>> GetPhotosByUser(Guid userId)
+    {
+        return await _context.Photos.Where(user => user.Id == userId).ToListAsync();
     }
 }

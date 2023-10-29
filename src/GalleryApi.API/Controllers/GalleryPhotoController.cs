@@ -3,111 +3,126 @@ using GalleryApi.Application.Entities;
 using Microsoft.AspNetCore.Mvc;
 using GalleryApi.Infrastructure.Repositories;
 using GalleryApi.Application.Common.Interfaces;
+using GalleryApi.Application.Common.Interfaces.Repository;
+using System.ComponentModel;
+using MediatR;
+using GalleryApi.Application.Gallery.Query.GetPhotos;
+using ErrorOr;
+using GalleryApi.Application.Gallery.Query.Download;
+using GalleryApi.Application.Gallery.Query.GetPhotoUser;
+using GalleryApi.Application.Gallery.Commands.Upload;
+using GalleryApi.Application.Gallery.Commands.Update;
+using GalleryApi.Application.Gallery.Commands.Delete;
 
-namespace GalleryPhoto.API.Controllers;
+namespace GalleryApi.API.Controllers;
 
 [Route("fotos")]
-public class GalleryPhotoController : ControllerBase
+public class GalleryApiController : ApiController
 {
-    private readonly IPhotoRepository _photoRepository;
+    private readonly ISender _mediator;
 
-    public GalleryPhotoController(IPhotoRepository photoRepository)
+    public GalleryApiController(ISender mediator)
     {
-        _photoRepository = photoRepository;
+        _mediator = mediator;
     }
 
     [HttpGet]
-    public ActionResult<GalleryResultList> GetPhotos()
+    public async Task<IActionResult> GetPhotos()
     {
-        return Ok(new GalleryResultList(_photoRepository.GetPhotos()));
+        var query = new GetPhotosQuery();
+
+        ErrorOr<GalleryResultList> galleryResultList = await _mediator.Send(query);
+        
+        return galleryResultList.Match(
+            result => Ok(galleryResultList),
+            errors => Problem(errors)
+        );
     }
 
     [HttpGet("{id}")]
-    public ActionResult<GalleryResult> DownloadPhoto(Guid id)
+    public async Task<IActionResult> GetPhotoById(Guid id)
     {
-        var photo = _photoRepository.GetPhotoById(id);
+        var query = new DownloadPhotoQuery(id);
 
-        if (photo is not Photo p)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status404NotFound,
-                title: "Photo not found"
-            );
-        }
-
-        return Ok(new GalleryResult(p));
+        ErrorOr<GalleryResult> galleryResult = await _mediator.Send(query);
+        
+        return galleryResult.Match(
+            result => Ok(galleryResult),
+            errors => Problem(errors)
+        );
     }
     
-    [HttpGet("{userId}")]
-    public ActionResult<GalleryResultList> GetPhotosByUser(Guid userId)
+    [HttpGet("download/{id}")]
+    public async Task<IActionResult> DownloadPhoto(Guid id)
     {
-        return Ok(new GalleryResultList(_photoRepository.GetPhotosByUser(userId)));
+        var query = new DownloadPhotoQuery(id);
+
+        ErrorOr<GalleryResult> galleryResult = await _mediator.Send(query);
+        
+        return galleryResult.Match(
+            result => Ok(File(result.photo.Contenido, "image/jpeg")),
+            errors => Problem(errors)
+        );
+    }
+    
+    [HttpGet("user/{userId}")]
+    public async Task<IActionResult> GetPhotosByUser(Guid userId)
+    {
+        var query = new GetByUserPhotoQuery(userId);
+
+        ErrorOr<GalleryResultList> galleryResultList = await _mediator.Send(query);
+        
+        return galleryResultList.Match(
+            result => Ok(galleryResultList),
+            errors => Problem(errors)
+        );
     }
     
     [HttpPost]
-    public ActionResult<GalleryResult> UploadPhoto(GalleryUploadRequest request)
+    public async Task<IActionResult> UploadPhoto(GalleryUploadRequest request)
     {
-        Photo photo = new Photo
-        {
-            Id = Guid.NewGuid(),
-            FileDescription = request.FileDescription,
-            FileName = request.FileName,
-            Auth = request.User
-        };
+        var query = new UploadPhotoCommands(
+            request.File,
+            request.FileName,
+            request.FileDescription,
+            request.User
+        );
 
-        using (var ms = new MemoryStream())
-        {
-            request.File.CopyToAsync(ms);
-            photo.Contenido = ms.ToArray();
-        }
-
-        _photoRepository.Add(photo);
-
-        return Ok(new GalleryResult(photo));
+        ErrorOr<GalleryResult> galleryResult = await _mediator.Send(query);
+        
+        return galleryResult.Match(
+            result => Ok(galleryResult),
+            errors => Problem(errors)
+        );
     }
     
     [HttpPut]
-    public ActionResult<GalleryResult> UpdatePhoto(GalleryUpdateRequest request)
+    public async Task<IActionResult> UpdatePhoto(GalleryUpdateRequest request)
     {
-        var photo = _photoRepository.GetPhotoById(request.FileId);
+        var query = new UpdatePhotoCommands(
+            request.FileId,
+            request.FileName,
+            request.FileDescription
+        );
 
-        if (photo is not Photo p)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status404NotFound,
-                title: "Photo not found",
-                detail: $"The photo with id '{request.FileId}' was not found."
-            );
-        }
-
-        Photo newPhoto = new Photo
-        {
-            Id = request.FileId,
-            FileDescription = request.FileDescription,
-            FileName = request.FileName
-        };
-
-        _photoRepository.Put(newPhoto);
-
-        return Ok(newPhoto);
+        ErrorOr<GalleryResult> galleryResult = await _mediator.Send(query);
+        
+        return galleryResult.Match(
+            result => Ok(galleryResult),
+            errors => Problem(errors)
+        );
     }
     
-    [HttpDelete("fileId")]
-    public ActionResult<GalleryResult> DeletePhoto(Guid fileId)
+    [HttpDelete("{fileId}")]
+    public async Task<IActionResult> DeletePhoto(Guid fileId)
     {
-        var photo = _photoRepository.GetPhotoById(fileId);
+        var query = new DeletePhotoCommands(fileId);
 
-        if (photo is not Photo p)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status404NotFound,
-                title: "Photo not found",
-                detail: $"The photo with id '{fileId}' was not found."
-            );
-        }
-
-        _photoRepository.Delete(photo);
-
-        return Ok(photo);
+        ErrorOr<GalleryResult> galleryResult = await _mediator.Send(query);
+        
+        return galleryResult.Match(
+            result => Ok(),
+            errors => Problem(errors)
+        );
     }
 }

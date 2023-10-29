@@ -1,19 +1,25 @@
 using GalleryApi.Application.Common.Interfaces.Repository;
 using GalleryApi.Application.Entities;
+using Microsoft.EntityFrameworkCore;
 
-namespace GalleryPhoto.Infrastructure.Repositories;
+namespace GalleryApi.Infrastructure.Repositories;
 
 public class UserRepository : IUserRepository
 {
-    private static readonly List<User> _users = new();
+    public readonly GalleryPhotoDBContext _context;
 
-    public void Add(User user)
+    public UserRepository(GalleryPhotoDBContext context)
     {
-        _users.Add(user);
+        _context = context;
     }
 
-    public User? GetUserByEmail(string email)
+    public async void Add(User user)
     {
-        return _users.Find(u => u.Email == email);
+        await _context.Users.AddAsync(user);
+    }
+
+    public async Task<User?> GetUserByEmail(string email)
+    {
+        return await _context.Users.SingleOrDefaultAsync(user => user.Email == email);
     }
 }

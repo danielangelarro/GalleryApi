@@ -2,7 +2,7 @@ using GalleryApi.Domain.Entities;
 
 namespace GalleryApi.Application.Entities;
 
-public class Photo : PhotoEntity
+public class Photo : Entity
 {
     public string FileDescription { get; set; } = null!;
     public string FileName { get; set; } = null!;

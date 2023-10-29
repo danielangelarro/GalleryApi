@@ -2,7 +2,7 @@ using GalleryApi.Domain.Entities;
 
 namespace GalleryApi.Application.Entities;
 
-public class User : UserEntity
+public class User : Entity
 {
     public string FirstName { get; set; } = null!;
     public string LastName { get; set; } = null!;

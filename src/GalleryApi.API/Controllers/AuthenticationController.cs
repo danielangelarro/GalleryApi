@@ -1,71 +1,62 @@
+using ErrorOr;
+using GalleryApi.Application.Authentication.Commands.Register;
 using GalleryApi.Application.Common.Interfaces.Repository;
 using GalleryApi.Application.DTO.Authentication;
 using GalleryApi.Application.Entities;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GalleryApi.API.Controllers;
 
 [Route("auth")]
-public class AuthenticationController : ControllerBase
+public class AuthenticationController : ApiController
 {
-    private readonly IUserRepository _userRepository;
+    private readonly ISender _mediator;
 
-    public AuthenticationController(IUserRepository userRepository)
+    public AuthenticationController(ISender mediator)
     {
-        _userRepository = userRepository;
+        _mediator = mediator;
     }
 
     [HttpPost("register")]
-     public ActionResult<AuthenticationResult> Register(RegisterRequest request)
+    public async Task<IActionResult> Register(RegisterRequest request)
     {
-        var user = _userRepository.GetUserByEmail(request.Email);
+        var command = new RegisterCommand(
+            request.FirstName,
+            request.LastName,
+            request.Email,
+            request.Password
+        );
 
-        if (user is User u)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status409Conflict,
-                title: "Conflict",
-                detail: $"The email '{u.Email}' already exists."
-            );
-        }
+        ErrorOr<AuthenticationResult> authResult = await _mediator.Send(command);
 
-        User newUser = new User
-        {
-            Id = Guid.NewGuid(),
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            Email = request.Email,
-            Password = request.Password,
-            Photos = new List<Photo>()
-        };
-
-        _userRepository.Add(newUser);
-
-        return Ok(new AuthenticationResult(newUser, "token"));
+        return authResult.Match(
+            authResult => Ok(MapAuthResult(authResult)),
+            errors => Problem(errors)
+        );
     }
 
     [HttpPost("login")]
-    public ActionResult<AuthenticationResult> Login(LoginRequest request)
+    public async Task<IActionResult> Login(LoginRequest request)
     {
-        var user = _userRepository.GetUserByEmail(request.Email);
+        var query = new LoginQuery(request.Email, request.Password);
 
-        if (user is not User u)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status404NotFound,
-                title: "Not Found",
-                detail: $"No user found with email '{request.Email}'"
-            );
-        }
+        ErrorOr<AuthenticationResult> authResult = await _mediator.Send(query);
 
-        if (user.Password != request.Password)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status400BadRequest, 
-                title: "Password incorrect."
-            );
-        }
+        return authResult.Match(
+            authResult => Ok(MapAuthResult(authResult)),
+            errors => Problem(errors)
+        );
+    }
 
-        return Ok(new AuthenticationResult(user, "token"));
+    private static AuthenticationResponse MapAuthResult(AuthenticationResult authResult)
+    {
+        return new AuthenticationResponse(
+            authResult.user.Id,
+            authResult.user.FirstName,
+            authResult.user.LastName,
+            authResult.user.Email,
+            authResult.Token
+        );
     }
 }
