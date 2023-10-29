@@ -10,7 +10,6 @@ public class UserRepository : IUserRepository
     public void Add(User user)
     {
         _users.Add(user);
-        Console.WriteLine("ffffffffffffffffffffffffffffffff");
     }
 
     public User? GetUserByEmail(string email)

@@ -20,8 +20,6 @@ public class AuthenticationController : ControllerBase
     {
         var user = _userRepository.GetUserByEmail(request.Email);
 
-        Console.WriteLine(request);
-
         if (user is User u)
         {
             return Problem(

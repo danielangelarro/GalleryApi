@@ -2,52 +2,46 @@ using GalleryApi.Application.DTO.Gallery;
 using GalleryApi.Application.Entities;
 using Microsoft.AspNetCore.Mvc;
 using GalleryApi.Infrastructure.Repositories;
+using GalleryApi.Application.Common.Interfaces;
 
 namespace GalleryPhoto.API.Controllers;
 
 [Route("fotos")]
 public class GalleryPhotoController : ControllerBase
 {
-    private readonly List<Photo> _photos;
-    private readonly GeneratorFakeData _generatorFakeData;
+    private readonly IPhotoRepository _photoRepository;
 
-    public GalleryPhotoController()
+    public GalleryPhotoController(IPhotoRepository photoRepository)
     {
-        _photos = new List<Photo>();
-        _generatorFakeData = new GeneratorFakeData();
-        
-        for (int i = 0; i < 5; i++)
-        {
-            _photos.Add(_generatorFakeData.GenerarDatosFalsosDePhoto());
-            _photos[i].Id = Guid.NewGuid();
-        }
+        _photoRepository = photoRepository;
     }
 
     [HttpGet]
     public ActionResult<GalleryResultList> GetPhotos()
     {
-        return Ok(new GalleryResultList(_photos));
+        return Ok(new GalleryResultList(_photoRepository.GetPhotos()));
     }
 
     [HttpGet("{id}")]
     public ActionResult<GalleryResult> DownloadPhoto(Guid id)
     {
-        var photo = _photos.SingleOrDefault(photo => photo.Id == id);
+        var photo = _photoRepository.GetPhotoById(id);
 
-        if (photo is Photo p)
+        if (photo is not Photo p)
         {
-            return Ok(new GalleryResult(p));
+            return Problem(
+                statusCode: StatusCodes.Status404NotFound,
+                title: "Photo not found"
+            );
         }
 
-        return NotFound();
+        return Ok(new GalleryResult(p));
     }
     
     [HttpGet("{userId}")]
     public ActionResult<GalleryResultList> GetPhotosByUser(Guid userId)
     {
-        List<Photo> photos = _photos.Where(photo => photo.Auth.Id == userId).ToList();
-
-        return Ok(new GalleryResultList(photos));
+        return Ok(new GalleryResultList(_photoRepository.GetPhotosByUser(userId)));
     }
     
     [HttpPost]
@@ -67,7 +61,7 @@ public class GalleryPhotoController : ControllerBase
             photo.Contenido = ms.ToArray();
         }
 
-        _photos.Add(photo);
+        _photoRepository.Add(photo);
 
         return Ok(new GalleryResult(photo));
     }
@@ -75,34 +69,45 @@ public class GalleryPhotoController : ControllerBase
     [HttpPut]
     public ActionResult<GalleryResult> UpdatePhoto(GalleryUpdateRequest request)
     {
-        var photo = _photos.SingleOrDefault(photo => photo.Id == request.FileId);
+        var photo = _photoRepository.GetPhotoById(request.FileId);
 
-        if (photo is Photo p)
+        if (photo is not Photo p)
         {
-            int index = _photos.IndexOf(photo);
-
-            _photos[index].FileName = request.FileName;
-            _photos[index].FileDescription = request.FileDescription;
-
-            return Ok(new GalleryResult(photo));
+            return Problem(
+                statusCode: StatusCodes.Status404NotFound,
+                title: "Photo not found",
+                detail: $"The photo with id '{request.FileId}' was not found."
+            );
         }
 
-        return NotFound();
+        Photo newPhoto = new Photo
+        {
+            Id = request.FileId,
+            FileDescription = request.FileDescription,
+            FileName = request.FileName
+        };
+
+        _photoRepository.Put(newPhoto);
+
+        return Ok(newPhoto);
     }
     
     [HttpDelete("fileId")]
     public ActionResult<GalleryResult> DeletePhoto(Guid fileId)
     {
-        var photo = _photos.SingleOrDefault(photo => photo.Id == fileId);
+        var photo = _photoRepository.GetPhotoById(fileId);
 
-        if (photo is Photo p)
+        if (photo is not Photo p)
         {
-            int index = _photos.IndexOf(photo);
-            _photos.RemoveAt(index);
-
-            return Ok(new GalleryResult(photo));
+            return Problem(
+                statusCode: StatusCodes.Status404NotFound,
+                title: "Photo not found",
+                detail: $"The photo with id '{fileId}' was not found."
+            );
         }
 
-        return NotFound();
+        _photoRepository.Delete(photo);
+
+        return Ok(photo);
     }
 }
