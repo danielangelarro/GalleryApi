@@ -7,7 +7,7 @@ using GalleryApi.Application.DTO.Authentication;
 using ErrorOr;
 using MediatR;
 
-namespace GalleryPhoto.Application.Authentication.Commands.Register;
+namespace GalleryApi.Application.Authentication.Commands.Register;
 
 public class LoginQueryHandler : IRequestHandler<LoginQuery, ErrorOr<AuthenticationResult>>
 {

@@ -1,7 +1,7 @@
 using GalleryApi.Application.Common.Interfaces.Repository;
 using GalleryApi.Application.Entities;
 
-namespace GalleryPhoto.Infrastructure.Repositories;
+namespace GalleryApi.Infrastructure.Repositories;
 
 public class UserRepository : IUserRepository
 {

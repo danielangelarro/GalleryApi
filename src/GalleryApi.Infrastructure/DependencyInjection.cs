@@ -1,7 +1,7 @@
 using GalleryApi.Application.Common.Interfaces;
 using GalleryApi.Application.Common.Interfaces.Repository;
 using GalleryApi.Infrastructure.Authentication;
-using GalleryPhoto.Infrastructure.Repositories;
+using GalleryApi.Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GalleryApi.Infrastructure;

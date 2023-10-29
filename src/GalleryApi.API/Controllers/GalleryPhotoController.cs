@@ -4,14 +4,14 @@ using Microsoft.AspNetCore.Mvc;
 using GalleryApi.Infrastructure.Repositories;
 using GalleryApi.Application.Common.Interfaces;
 
-namespace GalleryPhoto.API.Controllers;
+namespace GalleryApi.API.Controllers;
 
 [Route("fotos")]
-public class GalleryPhotoController : ControllerBase
+public class GalleryApiController : ControllerBase
 {
     private readonly IPhotoRepository _photoRepository;
 
-    public GalleryPhotoController(IPhotoRepository photoRepository)
+    public GalleryApiController(IPhotoRepository photoRepository)
     {
         _photoRepository = photoRepository;
     }
