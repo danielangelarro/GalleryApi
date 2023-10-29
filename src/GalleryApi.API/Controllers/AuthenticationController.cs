@@ -22,14 +22,15 @@ public class AuthenticationController : ControllerBase
            return NotFound();
         }
 
-        User user = new User(
-            Guid.NewGuid(),
-            request.FirstName,
-            request.LastName,
-            request.Email,
-            request.Password,
-            new List<Photo>()
-        );
+        User user = new User
+        {
+            Id = Guid.NewGuid(),
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email,
+            Password = request.Password,
+            Photos = new List<Photo>()
+        };
 
         _users.Add(user);
 

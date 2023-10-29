@@ -1,7 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\GalleryApi.Domain\GalleryApi.Domain.csproj" />
+    <ProjectReference Include="..\GalleryApi.Application\GalleryApi.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bogus" Version="34.0.2" />
   </ItemGroup>
 
   <PropertyGroup>
