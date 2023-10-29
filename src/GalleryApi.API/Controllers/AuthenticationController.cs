@@ -1,3 +1,4 @@
+using GalleryApi.Application.Common.Interfaces.Repository;
 using GalleryApi.Application.DTO.Authentication;
 using GalleryApi.Application.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -7,22 +8,30 @@ namespace GalleryApi.API.Controllers;
 [Route("auth")]
 public class AuthenticationController : ControllerBase
 {
-    private readonly List<User> _users;
+    private readonly IUserRepository _userRepository;
 
-    public AuthenticationController()
+    public AuthenticationController(IUserRepository userRepository)
     {
-        _users = new List<User>();
+        _userRepository = userRepository;
     }
 
     [HttpPost("register")]
      public ActionResult<AuthenticationResult> Register(RegisterRequest request)
     {
-        if (_users.SingleOrDefault(user => user.Email == request.Email) is not null)
+        var user = _userRepository.GetUserByEmail(request.Email);
+
+        Console.WriteLine(request);
+
+        if (user is User u)
         {
-           return NotFound();
+            return Problem(
+                statusCode: StatusCodes.Status409Conflict,
+                title: "Conflict",
+                detail: $"The email '{u.Email}' already exists."
+            );
         }
 
-        User user = new User
+        User newUser = new User
         {
             Id = Guid.NewGuid(),
             FirstName = request.FirstName,
@@ -32,21 +41,22 @@ public class AuthenticationController : ControllerBase
             Photos = new List<Photo>()
         };
 
-        _users.Add(user);
+        _userRepository.Add(newUser);
 
-        return Ok(new AuthenticationResult(user, "token"));
+        return Ok(new AuthenticationResult(newUser, "token"));
     }
 
     [HttpPost("login")]
     public ActionResult<AuthenticationResult> Login(LoginRequest request)
     {
-        var user = _users.SingleOrDefault(user => user.Email == request.Email);
-        
-        if (user is not User _user)
+        var user = _userRepository.GetUserByEmail(request.Email);
+
+        if (user is not User u)
         {
             return Problem(
-                statusCode: StatusCodes.Status404NotFound, 
-                detail: "User not found."
+                statusCode: StatusCodes.Status404NotFound,
+                title: "Not Found",
+                detail: $"No user found with email '{request.Email}'"
             );
         }
 
@@ -54,7 +64,7 @@ public class AuthenticationController : ControllerBase
         {
             return Problem(
                 statusCode: StatusCodes.Status400BadRequest, 
-                detail: "Password incorrect."
+                title: "Password incorrect."
             );
         }
 

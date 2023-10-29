@@ -4,6 +4,6 @@ namespace GalleryApi.Application.Common.Interfaces.Repository;
 
 public interface IUserRepository
 {
-    Task<User?> GetUserByEmail(string email);
+    User? GetUserByEmail(string email);
     void Add(User user);
 }
