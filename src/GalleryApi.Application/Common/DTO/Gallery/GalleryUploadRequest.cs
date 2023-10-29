@@ -7,5 +7,5 @@ public record GalleryUploadRequest(
     IFormFile File,
     string FileName,
     string FileDescription,
-    User User
+    string Email
 );
