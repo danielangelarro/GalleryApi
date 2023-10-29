@@ -1,0 +1,10 @@
+using ErrorOr;
+using MediatR;
+using GalleryApi.Application.DTO.Authentication;
+
+namespace GalleryApi.Application.Authentication.Commands.Register;
+
+public record LoginQuery(
+    string Email,
+    string Password
+) : IRequest<ErrorOr<AuthenticationResult>>;
