@@ -4,6 +4,7 @@ using System.Text;
 using GalleryApi.Application.Common.Interfaces.Authentication;
 using GalleryApi.Application.Common.Interfaces.Services;
 using GalleryApi.Application.Entities;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace GalleryApi.Infrastructure.Authentication;
@@ -13,9 +14,9 @@ public class JwTokenGenerator : IJwtTokenGenerator
     private readonly JwtSettings _jwtSettings;
     private readonly IDateTimeProvider _dateTimeProvider;
 
-    public JwTokenGenerator(JwtSettings jwtSettings, IDateTimeProvider dateTimeProvider)
+    public JwTokenGenerator(IOptions<JwtSettings> jwtSettings, IDateTimeProvider dateTimeProvider)
     {
-        _jwtSettings = jwtSettings;
+        _jwtSettings = jwtSettings.Value;
         _dateTimeProvider = dateTimeProvider;
     }
 
