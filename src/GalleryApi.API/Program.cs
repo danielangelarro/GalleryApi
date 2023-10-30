@@ -1,5 +1,6 @@
 using GalleryApi.Application;
 using GalleryApi.Infrastructure;
+using GalleryApi.API.Authentication;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
         .AddApplication()
         .AddInfrastructure(builder.Configuration);
 
+    builder.Services.ConfigureAutheticationServices(builder.Configuration);
+
     builder.Services.AddControllers();
 }
 
@@ -21,6 +24,9 @@ var app = builder.Build();
         app.UseSwagger();
         app.UseSwaggerUI();
     }
+
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     app.UseHttpsRedirection();
     app.MapControllers();

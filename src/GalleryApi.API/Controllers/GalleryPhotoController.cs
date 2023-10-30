@@ -1,21 +1,24 @@
 using GalleryApi.Application.DTO.Gallery;
 using GalleryApi.Application.Entities;
-using Microsoft.AspNetCore.Mvc;
 using GalleryApi.Infrastructure.Repositories;
 using GalleryApi.Application.Common.Interfaces;
 using GalleryApi.Application.Common.Interfaces.Repository;
-using System.ComponentModel;
-using MediatR;
 using GalleryApi.Application.Gallery.Query.GetPhotos;
-using ErrorOr;
 using GalleryApi.Application.Gallery.Query.Download;
 using GalleryApi.Application.Gallery.Query.GetPhotoUser;
 using GalleryApi.Application.Gallery.Commands.Upload;
 using GalleryApi.Application.Gallery.Commands.Update;
 using GalleryApi.Application.Gallery.Commands.Delete;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel;
+using MediatR;
+using ErrorOr;
+
 
 namespace GalleryApi.API.Controllers;
 
+[Authorize]
 [Route("fotos")]
 public class GalleryApiController : ApiController
 {
