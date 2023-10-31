@@ -1,5 +1,6 @@
 using ErrorOr;
 using GalleryApi.Application.Authentication.Commands.Register;
+using GalleryApi.Application.Authentication.Queries.Login;
 using GalleryApi.Application.Common.Interfaces.Repository;
 using GalleryApi.Application.DTO.Authentication;
 using GalleryApi.Application.Entities;
