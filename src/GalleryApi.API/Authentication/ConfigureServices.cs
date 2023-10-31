@@ -9,18 +9,20 @@ using GalleryApi.Infrastructure.Authentication;
 namespace GalleryApi.API.Authentication;
 
 
-public static class DependencyInjection
+public static partial class DependencyInjection
 {
     public static IServiceCollection ConfigureAutheticationServices(
         this IServiceCollection services,
         Microsoft.Extensions.Configuration.ConfigurationManager configuration)
     {
-        var jwtSettings = configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>();
-        var key = Encoding.ASCII.GetBytes(jwtSettings.Secret);
+        var jwtSettings = configuration.GetSection("JwtSettings");
+        var secret = jwtSettings.GetValue<string>("Secret");
+        var issuer = jwtSettings.GetValue<string>("Issuer");
+        var audience = jwtSettings.GetValue<string>("Audience");
 
-        
-        services
-            .AddAuthentication(x =>
+        var key = Encoding.UTF8.GetBytes(secret);
+
+        services.AddAuthentication(x =>
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -33,8 +35,10 @@ public static class DependencyInjection
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false
+                    ValidateIssuer = true,
+                    ValidIssuer = issuer,
+                    ValidateAudience = true,
+                    ValidAudience = audience
                 };
             });
 

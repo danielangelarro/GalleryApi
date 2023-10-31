@@ -38,6 +38,8 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<A
 
         var token = _jwtTokenGenerator.GenerateToken(user);
 
+        Console.WriteLine($"Register: {token}");
+
         return new AuthenticationResult(
             user,
             token
