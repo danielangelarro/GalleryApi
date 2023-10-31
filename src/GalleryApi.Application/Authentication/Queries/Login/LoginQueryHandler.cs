@@ -4,6 +4,7 @@ using GalleryApi.Application.Common.Interfaces.Authentication;
 using GalleryApi.Application.Common.Interfaces.Repository;
 using GalleryApi.Application.Entities;
 using GalleryApi.Application.DTO.Authentication;
+using GalleryApi.Application.Authentication.Services;
 using FluentValidation;
 using ErrorOr;
 using MediatR;
@@ -14,13 +15,19 @@ public class LoginQueryHandler : IRequestHandler<LoginQuery, ErrorOr<Authenticat
 {
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IUserRepository _userRepository;
+    private readonly PasswordService _passwordService;
     private readonly IValidator<LoginQuery> _validator;
 
-    public LoginQueryHandler(IUserRepository userRepository, IJwtTokenGenerator jwtTokenGenerator, IValidator<LoginQuery> validator)
+    public LoginQueryHandler(
+        IUserRepository userRepository, 
+        IJwtTokenGenerator jwtTokenGenerator, 
+        IValidator<LoginQuery> validator,
+        PasswordService passwordService)
     {
         _userRepository = userRepository;
         _jwtTokenGenerator = jwtTokenGenerator;
         _validator = validator;
+        _passwordService = passwordService;
     }
 
     public async Task<ErrorOr<AuthenticationResult>> Handle(LoginQuery query, CancellationToken cancellationToken)
@@ -37,7 +44,7 @@ public class LoginQueryHandler : IRequestHandler<LoginQuery, ErrorOr<Authenticat
             return Errors.Authentication.InvalidCredentials;
         }
 
-        if (user.Password != query.Password)
+        if (!_passwordService.VerifyPassword(query.Password, user.Password))
         {
             return Errors.Authentication.InvalidCredentials;
         }

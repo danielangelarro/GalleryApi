@@ -4,6 +4,7 @@ using GalleryApi.Application.Common.Interfaces.Authentication;
 using GalleryApi.Application.Common.Interfaces.Repository;
 using GalleryApi.Application.Entities;
 using GalleryApi.Application.DTO.Authentication;
+using GalleryApi.Application.Authentication.Services;
 using FluentValidation;
 using ErrorOr;
 using MediatR;
@@ -14,13 +15,19 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<A
 {
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IUserRepository _userRepository;
+    private readonly PasswordService _passwordService;
     private readonly IValidator<RegisterCommand> _validator;
 
-    public RegisterCommandHandler(IUserRepository userRepository, IJwtTokenGenerator jwtTokenGenerator, IValidator<RegisterCommand> validator)
+    public RegisterCommandHandler(
+        IUserRepository userRepository, 
+        IJwtTokenGenerator jwtTokenGenerator, 
+        IValidator<RegisterCommand> validator,
+        PasswordService passwordService)
     {
         _userRepository = userRepository;
         _jwtTokenGenerator = jwtTokenGenerator;
         _validator = validator;
+        _passwordService = passwordService;
     }
 
     public async Task<ErrorOr<AuthenticationResult>> Handle(RegisterCommand command, CancellationToken cancellationToken)
@@ -41,7 +48,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<A
             FirstName = command.FirstName,
             LastName = command.LastName,
             Email = command.Email,
-            Password = command.Password
+            Password = _passwordService.HashPassword(command.Password)
         };
 
         _userRepository.Add(user);
