@@ -20,7 +20,9 @@ public static class DependencyInjection
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
 
         services.AddDbContext<GalleryPhotoDBContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"),
+                x => x.MigrationsAssembly("GalleryApi.API")
+            )
         );
 
         services.AddSingleton<IJwtTokenGenerator, JwTokenGenerator>();

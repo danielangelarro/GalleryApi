@@ -1,6 +1,7 @@
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 
+
 namespace GalleryApi.API.Controllers;
 
 [ApiController]
